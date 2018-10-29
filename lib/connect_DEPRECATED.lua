@@ -1,6 +1,22 @@
 local Roact = require(script.Parent.Parent.Roact)
+local Logging = require(script.Parent.Logging)
 
 local storeKey = require(script.Parent.storeKey)
+
+local deprecationWarningMessage = [[
+This connect function signature is in the process of being deprecated:
+RoactRodux.connect(mapStoreToProps)
+
+The connect function is being migrated to use the following signature:
+RoactRodux.connect(mapStateToProps, mapDispatchToProps)
+
+During this process, please migrate usages of RoactRodux.connect to instead use
+RoactRodux.UNSTABLE_connect2 with the above signature. After usages of
+RoactRodux.connect have been removed, 'UNSTABLE_connect2' will be renamed to
+'connect' and a new migration period will be started to allow the rename.
+
+%s
+]]
 
 local function shallowEqual(a, b)
 	for key, value in pairs(a) do
@@ -40,8 +56,10 @@ local function errorLines(...)
 	error(table.concat({...}, "\n"))
 end
 
-local function connect(mapStoreToProps)
+local function connect_DEPRECATED(mapStoreToProps)
 	local rootTrace = debug.traceback()
+
+	Logging.warn(deprecationWarningMessage:format(rootTrace))
 
 	local mapConnect = function(store, props)
 		local result = mapStoreToProps(store, props)
@@ -110,4 +128,4 @@ local function connect(mapStoreToProps)
 	end
 end
 
-return connect
+return connect_DEPRECATED

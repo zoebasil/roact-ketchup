@@ -1,10 +1,11 @@
 return function()
-	local connect = require(script.Parent.connect)
-
-	local StoreProvider = require(script.Parent.StoreProvider)
-
 	local Roact = require(script.Parent.Parent.Roact)
 	local Rodux = require(script.Parent.Parent.Rodux)
+
+	local StoreProvider = require(script.Parent.StoreProvider)
+	local Logging = require(script.Parent.Logging)
+
+	local connect_DEPRECATED = require(script.Parent.connect_DEPRECATED)
 
 	local function incrementReducer(state, action)
 		state = state or 0
@@ -16,13 +17,31 @@ return function()
 		return state
 	end
 
+	it("should warn when called", function()
+		local function SomeComponent(props)
+			return nil
+		end
+
+		local logInfo = Logging.capture(function()
+			connect_DEPRECATED(function(store)
+				return {}
+			end)(SomeComponent)
+		end)
+
+		expect(#logInfo.warnings).to.equal(1)
+		expect(logInfo.warnings[1]:find("deprecated")).to.be.ok()
+		expect(logInfo.warnings[1]:find("connect_DEPRECATED.spec")).to.be.ok()
+	end)
+
 	it("should throw if not passed a component", function()
 		local selector = function(store)
 			return {}
 		end
 
 		expect(function()
-			connect(selector)(nil)
+			Logging.capture(function()
+				connect_DEPRECATED(selector)(nil)
+			end)
 		end).to.throw()
 	end)
 
@@ -33,9 +52,12 @@ return function()
 			return nil
 		end
 
-		local ConnectedSomeComponent = connect(function(store)
-			return {}
-		end)(SomeComponent)
+		local ConnectedSomeComponent
+		Logging.capture(function()
+			ConnectedSomeComponent = connect_DEPRECATED(function(store)
+				return {}
+			end)(SomeComponent)
+		end)
 
 		local tree = Roact.createElement(StoreProvider, {
 			store = store,
@@ -53,9 +75,12 @@ return function()
 			return nil
 		end
 
-		local ConnectedSomeComponent = connect(function(store)
-			return {}
-		end)(SomeComponent)
+		local ConnectedSomeComponent
+		Logging.capture(function()
+			ConnectedSomeComponent = connect_DEPRECATED(function(store)
+				return {}
+			end)(SomeComponent)
+		end)
 
 		local tree = Roact.createElement(ConnectedSomeComponent)
 
@@ -75,11 +100,14 @@ return function()
 			return nil
 		end
 
-		local ConnectedSomeComponent = connect(function(store)
-			return {
-				value = store:getState()
-			}
-		end)(SomeComponent)
+		local ConnectedSomeComponent
+		Logging.capture(function()
+			ConnectedSomeComponent = connect_DEPRECATED(function(store)
+				return {
+					value = store:getState()
+				}
+			end)(SomeComponent)
+		end)
 
 		local tree = Roact.createElement(StoreProvider, {
 			store = store,
