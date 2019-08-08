@@ -6,7 +6,7 @@
 local LOAD_MODULES = {
 	{"lib", "Library"},
 	{"modules/rodux/lib", "Rodux"},
-	{"modules/roact/lib", "Roact"},
+	{"modules/roact/src", "Roact"},
 	{"modules/testez/lib", "TestEZ"},
 }
 
