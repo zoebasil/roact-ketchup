@@ -5,4 +5,5 @@ content_root = "lib"
 version = "0.1.0"
 
 [dependencies]
-Roact = { git = "https://github.com/Roblox/roact.git", rev = "master" }
+Roact = { git = "https://github.com/Roblox/roact", rev = "master" }
+Rodux = { git = "https://github.com/Roblox/rodux", rev = "master" }
