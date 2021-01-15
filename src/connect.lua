@@ -1,4 +1,4 @@
-local Roact = require(script.Parent.Parent.Roact)
+local Roact = require(script.Parent.Lib.Roact)
 local getStore = require(script.Parent.getStore)
 local shallowEqual = require(script.Parent.shallowEqual)
 local join = require(script.Parent.join)
@@ -31,7 +31,7 @@ local function makeStateUpdater(store)
 			mappedStoreState = prevState.mapStateToProps(store:getState(), nextProps)
 		end
 
-		local propsForChild = join(nextProps, mappedStoreState, prevState.mappedStoreDispatch)
+		local propsForChild = join(nextProps, mappedStoreState, prevState.mappedStorePush)
 
 		return {
 			mappedStoreState = mappedStoreState,
@@ -45,21 +45,21 @@ end
 		(storeState, props) -> partialProps
 		OR
 		() -> (storeState, props) -> partialProps
-	mapDispatchToProps: (dispatch) -> partialProps
+	mapPushToProps: (Push) -> partialProps
 ]]
-local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
+local function connect(mapStateToProps, mapPushToProps)
 	local connectTrace = debug.traceback()
 
-	if mapStateToPropsOrThunk ~= nil then
-		assert(typeof(mapStateToPropsOrThunk) == "function", "mapStateToProps must be a function or nil!")
+	if mapStateToProps ~= nil then
+		assert(typeof(mapStateToProps) == "function", "mapStateToProps must be a function or nil!")
 	else
-		mapStateToPropsOrThunk = noop
+		mapStateToProps = noop
 	end
 
-	if mapDispatchToProps ~= nil then
-		assert(typeof(mapDispatchToProps) == "function", "mapDispatchToProps must be a function or nil!")
+	if mapPushToProps ~= nil then
+		assert(typeof(mapPushToProps) == "function", "mapPushToProps must be a function or nil!")
 	else
-		mapDispatchToProps = noop
+		mapPushToProps = noop
 	end
 
 	return function(innerComponent)
@@ -75,7 +75,7 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 			error(message, 2)
 		end
 
-		local componentName = ("RoduxConnection(%s)"):format(tostring(innerComponent))
+		local componentName = ("KetchupConnection(%s)"):format(tostring(innerComponent))
 
 		local Connection = Roact.Component:extend(componentName)
 
@@ -107,7 +107,7 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 
 			if self.store == nil then
 				local message = formatMessage({
-					"Cannot initialize Roact-Rodux connection without being a descendent of StoreProvider!",
+					"Cannot initialize Roact-Ketchup connection without being a descendent of StoreProvider!",
 					"Tried to wrap component %q",
 					"Make sure there is a StoreProvider above this component in the tree.",
 				}, {
@@ -119,10 +119,9 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 
 			local storeState = self.store:getState()
 
-			local mapStateToProps = mapStateToPropsOrThunk
 			local mappedStoreState = mapStateToProps(storeState, self.props)
 
-			-- mapStateToPropsOrThunk can return a function instead of a state
+			-- mapStateToProps can return a function instead of a state
 			-- value. In this variant, we keep that value as mapStateToProps
 			-- instead of the original mapStateToProps. This matches react-redux
 			-- and enables connectors to keep instance-level state.
@@ -143,14 +142,14 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 				error(message)
 			end
 
-			local mappedStoreDispatch = mapDispatchToProps(function(...)
-				return self.store:dispatch(...)
+			local mappedStorePush = mapPushToProps(function(...)
+				return self.store:push(...)
 			end)
 
 			local stateUpdater = makeStateUpdater(self.store)
 
 			self.state = {
-				-- Combines props, mappedStoreDispatch, and the result of
+				-- Combines props, mappedStorePush, and the result of
 				-- mapStateToProps into propsForChild. Stored in state so that
 				-- getDerivedStateFromProps can access it.
 				stateUpdater = stateUpdater,
@@ -160,7 +159,7 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 				mapStateToProps = mapStateToProps,
 
 				-- Used by stateUpdater to construct propsForChild.
-				mappedStoreDispatch = mappedStoreDispatch,
+				mappedStorePush = mappedStorePush,
 
 				-- Passed directly into the component that Connection is
 				-- wrapping.
