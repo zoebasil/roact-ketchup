@@ -73,7 +73,7 @@ local function connect(mapStateToProps)
 			error(message, 2)
 		end
 
-		local componentName = ("KetchupConnection(%s)"):format(tostring(innerComponent))
+		local componentName = ("MelonConnection(%s)"):format(tostring(innerComponent))
 
 		local Connection = Roact.Component:extend(componentName)
 
@@ -105,7 +105,7 @@ local function connect(mapStateToProps)
 
 			if self.store == nil then
 				local message = formatMessage({
-					"Cannot initialize Roact-Ketchup connection without being a descendent of StoreProvider!",
+					"Cannot initialize Roact-Melon connection without being a descendent of StoreProvider!",
 					"Tried to wrap component %q",
 					"Make sure there is a StoreProvider above this component in the tree.",
 				}, {

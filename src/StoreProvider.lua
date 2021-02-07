@@ -8,7 +8,7 @@ function StoreProvider:init(props)
 	local store = props.store
 
 	if store == nil then
-		error("Error initializing StoreProvider. Expected a `store` prop to be a Ketchup store.")
+		error("Error initializing StoreProvider. Expected a `store` prop to be a Melon store.")
 	end
 
 	self._context[storeKey] = store

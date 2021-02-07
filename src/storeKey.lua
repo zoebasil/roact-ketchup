@@ -1,3 +1,3 @@
 local Symbol = require(script.Parent.Symbol)
 
-return Symbol.named("KetchupStore")
+return Symbol.named("MelonStore")
